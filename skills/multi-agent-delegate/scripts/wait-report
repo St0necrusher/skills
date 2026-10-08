@@ -2,14 +2,22 @@
 # Usage: wait-report <agent> <report-path> [timeout-min]
 # Waits until <report-path> is newer than at start (or appears) and <agent> has
 # settled (idle or done) for 20 s, then prints REPORT_READY. A pi turn can end while
-# the agent's own background job still runs, so the settled state is checked twice.
+# the agent's own background job still runs, and an agent may rewrite the file after
+# its first write, so the settled state is checked twice. An agent that stays settled
+# for 5 minutes without touching the file stopped without a report: NO_REPORT.
 agent=$1; report=$2; limit=$(( ${3:-120} * 2 ))
 mtime() { stat -f %m "$1" 2>/dev/null || stat -c %Y "$1" 2>/dev/null || echo 0; }
 settled() { herdr agent get "$agent" 2>/dev/null | grep -qE '"agent_status":"(idle|done)"'; }
-start=$(mtime "$report"); i=0
+start=$(mtime "$report"); i=0; quiet=0
 while [ "$i" -lt "$limit" ]; do
-  if [ "$(mtime "$report")" != "$start" ] && settled; then
-    sleep 20; settled && { echo "REPORT_READY $report"; exit 0; }
+  if settled; then
+    if [ "$(mtime "$report")" != "$start" ]; then
+      sleep 20; settled && { echo "REPORT_READY $report"; exit 0; }
+    else
+      quiet=$((quiet + 1)); [ "$quiet" -ge 10 ] && { echo "NO_REPORT $agent"; exit 2; }
+    fi
+  else
+    quiet=0
   fi
   sleep 30; i=$((i + 1))
 done

@@ -11,7 +11,7 @@ If `test "${HERDR_ENV:-}" = 1` fails, tell the user you are not inside Herdr and
 
 ## Kind
 
-- `pi`: any non-Anthropic model. Driven through Herdr: `herdr agent prompt` in, background `herdr agent wait` for completion, `herdr agent read` for the answer.
+- `pi`: any non-Anthropic model. Driven through Herdr: `herdr agent prompt` in, background `wait-report` on its answer file for completion, the answer file for the result.
 - `claude`: a Claude Code session the user wants to watch or talk to directly. Driven through cross-session messaging: `SendMessage` in, `notify_when_idle` for completion, and the delegate sends its result back as a message.
 
 A Claude task the user did not ask to see in a tab goes to the built-in Agent tool instead: it returns its result directly and costs no tab.
@@ -54,10 +54,12 @@ Re-evaluate after each result: a `one-shot` result that reveals needed follow-up
 
    For a brief longer than a screen, write it to a file in your scratchpad and send "Read <path> and do the task described there."
 6. **Send it.**
-   - `pi`: run with Bash `run_in_background: true`:
+   - `pi`: send the brief, then wait on the answer file with Bash `run_in_background: true`:
      ```bash
-     herdr agent prompt <name> "<brief>" --wait --timeout 1800000
+     herdr agent prompt <name> "<brief>"
+     <skill-dir>/scripts/wait-report <name> <answer path> [timeout-min]
      ```
+     `wait-report` is the one wait for pi. It returns only after the file changed and the agent stayed settled for 20 s, which covers the two cases that fool `--wait` and hand-written loops: a turn that ends while the delegate's background job still runs, and a delegate that rewrites its file after the first write. `<skill-dir>` is this skill's base directory; pass its absolute path to any delegate that runs the script itself.
    - `claude`: first arm the **blocked trap** with Bash `run_in_background: true`, then `SendMessage` to `<name>` with the brief and `notify_when_idle: true`. The idle notice never fires while the delegate sits on a permission prompt; the trap does:
      ```bash
      herdr agent wait <name> --until blocked --timeout 1800000
@@ -71,11 +73,11 @@ While an `ongoing` delegate implements, leave the files it owns alone; review af
 
 ### `pi`
 
-The background command returns the agent state, not the answer. Branch on `agent_status` in its JSON:
+Branch on the script's last line:
 
-- `done` / `idle`: read the answer file and relay what matters to the user. With no file, read the screen: `herdr agent read <name> --source recent-unwrapped --lines 60`.
-- `blocked`: the delegate is waiting on a question or approval. Read the screen, show the user the question, and answer only with the user's decision (`herdr agent prompt` for text, `herdr agent send-keys` for UI keys).
-- `timeout` or `agent_prompt_stalled`: read the screen before acting. If it is still `working`, re-arm with `herdr agent wait <name> --timeout 1800000` in the background. Resend the brief only after the read shows it never arrived.
+- `REPORT_READY`: the file is final; read it and relay what matters to the user.
+- `NO_REPORT`: the delegate settled for 5 minutes without writing the file. Read the screen: `herdr agent read <name> --source recent-unwrapped --lines 60`. Resend the brief only after the read shows it never arrived.
+- `TIMEOUT`: read the screen. If it is still `working`, re-arm the script in the background.
 
 ### `claude`
 
@@ -89,15 +91,7 @@ Two events arrive, usually in this order: the delegate's result as a cross-sessi
 
 Then apply the lifecycle: close a `one-shot` delegate, keep an `ongoing` one.
 
-## Waiting and watching
-
-`<skill-dir>` is this skill's base directory; pass its absolute path to any delegate that runs a script.
-
-A pi turn can end while the delegate's own background job (a test run) still works, so `agent prompt --wait` may return before the result exists. For a delegate that writes a report file, wait on the file instead, in the background:
-
-```bash
-<skill-dir>/scripts/wait-report <name> <report-path> [timeout-min]
-```
+## Watching a fan-out
 
 To guard a running fan-out against context overflow or the Codex 5h limit, run in the background:
 
@@ -109,6 +103,6 @@ It exits with one `ALERT` line; act on it, then re-arm it.
 
 ## Follow-up and closing
 
-- Follow-up goes to the same delegate through step 6: `herdr agent prompt … --wait` in the background for `pi`, blocked trap plus `SendMessage` with `notify_when_idle: true` for `claude`. Find live delegates with `herdr agent list` (and `ListAgents` for `claude`); the name identifies them across turns.
+- Follow-up goes to the same delegate through step 6: `herdr agent prompt` plus background `wait-report` on the answer file for `pi`, blocked trap plus `SendMessage` with `notify_when_idle: true` for `claude`. Find live delegates with `herdr agent list` (and `ListAgents` for `claude`); the name identifies them across turns.
 - Close by tab: take `tab_id` from `herdr agent get <name>`, then `herdr tab close <tab_id>`. Close only tabs you created as delegates. A `claude` delegate's blocked trap then exits with an error; that exit is expected.
 - Several delegates may run in parallel: each gets its own name, tab, and notification.
