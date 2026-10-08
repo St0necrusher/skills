@@ -1,0 +1,17 @@
+#!/bin/sh
+# Usage: watch-pi <name-prefix> [context-limit-k] [5h-left-percent]
+# Polls every working pi agent whose name starts with <name-prefix> and exits with one
+# ALERT line when an agent's context reaches the limit (default 140k) or the Codex
+# "5h N% left" figure drops to the threshold (default 15).
+prefix=$1; ctx_limit=${2:-140}; left_limit=${3:-15}
+while true; do
+  for a in $(herdr agent list | grep -o "\"name\":\"$prefix[a-z0-9_-]*\"" | cut -d'"' -f4); do
+    herdr agent get "$a" 2>/dev/null | grep -q '"agent_status":"working"' || continue
+    s=$(herdr agent read "$a" --source visible 2>/dev/null)
+    ctx=$(echo "$s" | sed -nE 's/.*context ([0-9]+)(\.[0-9]+)?k.*/\1/p' | head -1)
+    left=$(echo "$s" | sed -nE 's/.*5h ([0-9]+)% left.*/\1/p' | head -1)
+    [ -n "$ctx" ] && [ "$ctx" -ge "$ctx_limit" ] && { echo "ALERT $a context ${ctx}k"; exit 0; }
+    [ -n "$left" ] && [ "$left" -le "$left_limit" ] && { echo "ALERT $a 5h ${left}% left"; exit 0; }
+  done
+  sleep 120
+done

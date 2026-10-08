@@ -1,0 +1,16 @@
+#!/bin/sh
+# Usage: wait-report <agent> <report-path> [timeout-min]
+# Waits until <report-path> is newer than at start (or appears) and <agent> has
+# settled (idle or done) for 20 s, then prints REPORT_READY. A pi turn can end while
+# the agent's own background job still runs, so the settled state is checked twice.
+agent=$1; report=$2; limit=$(( ${3:-120} * 2 ))
+mtime() { stat -f %m "$1" 2>/dev/null || stat -c %Y "$1" 2>/dev/null || echo 0; }
+settled() { herdr agent get "$agent" 2>/dev/null | grep -qE '"agent_status":"(idle|done)"'; }
+start=$(mtime "$report"); i=0
+while [ "$i" -lt "$limit" ]; do
+  if [ "$(mtime "$report")" != "$start" ] && settled; then
+    sleep 20; settled && { echo "REPORT_READY $report"; exit 0; }
+  fi
+  sleep 30; i=$((i + 1))
+done
+echo "TIMEOUT $agent"; exit 1

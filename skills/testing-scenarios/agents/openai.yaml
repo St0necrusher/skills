@@ -1,0 +1,3 @@
+interface:
+  display_name: "Testing Scenarios"
+  short_description: "Choose which test scenarios to plan"

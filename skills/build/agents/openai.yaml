@@ -1,0 +1,5 @@
+interface:
+  display_name: "Build"
+  short_description: "Design together, delegate, reconcile"
+policy:
+  allow_implicit_invocation: false

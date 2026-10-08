@@ -1,0 +1,5 @@
+interface:
+  display_name: "Impl"
+  short_description: "Implement one ticket for human review"
+policy:
+  allow_implicit_invocation: false

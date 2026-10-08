@@ -1,0 +1,5 @@
+interface:
+  display_name: "Tests"
+  short_description: "Write durable tests after human review"
+policy:
+  allow_implicit_invocation: false

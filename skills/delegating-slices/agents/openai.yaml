@@ -1,0 +1,3 @@
+interface:
+  display_name: "Delegating Slices"
+  short_description: "Coordinate a delegated phase in slices"
