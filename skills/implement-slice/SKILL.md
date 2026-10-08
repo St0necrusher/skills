@@ -5,13 +5,13 @@ description: Implement a bounded delegated slice of an approved architecture; re
 
 # Implement a slice
 
-Own the assigned slice, including requested corrections. The coordinator owns architecture and user agreement. Architecture artifacts are read-only for workers: propose amendments in the assigned result report or a message to the coordinator, and let the coordinator update the authoritative design after the appropriate approval. This applies even to minor corrections and already-approved amendments. Work directly rather than delegating further.
+Own the assigned slice, including requested corrections. The coordinator owns architecture and user agreement. Architecture artifacts are read-only for workers: propose amendments in the assigned result report, and let the coordinator update the authoritative design after the appropriate approval. This applies even to minor corrections and already-approved amendments. Work directly rather than delegating further.
 
 ## 1. Establish the contract
 
 Read the assignment, approved architecture, applicable project instructions, and relevant source. Identify owned files, public seams, acceptance criteria, exclusions, dependencies, and existing validation commands. Inspect the worktree and preserve pre-existing and other workers' changes.
 
-Ask the coordinator about missing consequential decisions, conflicting requirements, or overlapping ownership before editing affected code.
+Ask about missing consequential decisions, conflicting requirements, or overlapping ownership before editing affected code: as a request to the answerer the assignment names (the architect), or in the report's Questions section when it names none.
 
 **Exit:** the assigned behavior and ownership are explicit and dependencies are available or reported blocked.
 
@@ -23,7 +23,7 @@ Add supporting machinery only for a concrete current requirement, contract, or a
 
 Before adding a defensive check or reporting a defect, trace the scenario through actual callers, input provenance, and reachable lifecycle states. Distinguish demonstrated failures from hypothetical misuse. Locate the owner of the violated invariant: if the cause is broken ownership or data flow, propose correcting that layer rather than masking the symptom in consumers. Keep checks that enforce legitimate boundary contracts distinct from compensating patches.
 
-When implementation reveals a design problem, send the coordinator the evidence, affected assumption, impact, and smallest proposed remedy. Pause affected work pending a decision; independent work may continue. An architectural workaround needs agreement rather than silent adoption.
+When implementation reveals a design problem, put the evidence, affected assumption, impact, and smallest proposed remedy to the same answerer, or in the report. Pause affected work pending a decision; independent work may continue. An architectural workaround needs agreement rather than silent adoption.
 
 Tests, fixtures, snapshots, test helpers, and test configuration remain unchanged. Report obsolete-test conflicts for the later testing phase; preserve checks rather than weakening them. Staging, commits, and pushes require separate explicit authorization.
 
@@ -33,7 +33,7 @@ Tests, fixtures, snapshots, test helpers, and test configuration remain unchange
 
 Run applicable existing checks from the assignment and repository scripts. Inspect the final diff for scope and unintended changes. Distinguish observed results from assumptions; record unrun checks and failures without claiming an unverified baseline.
 
-Write the assigned durable report containing:
+Write the assigned durable report, ending with the end-marker line the assignment gives, containing:
 
 - criteria mapped to implementation locations and status;
 - changed files and public seams;

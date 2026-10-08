@@ -1,24 +1,36 @@
 #!/bin/sh
-# Usage: wait-report <agent> <report-path> [timeout-min]
-# Waits until <report-path> is newer than at start (or appears) and <agent> has
-# settled (idle or done) for 20 s, then prints REPORT_READY. A pi turn can end while
-# the agent's own background job still runs, and an agent may rewrite the file after
-# its first write, so the settled state is checked twice. An agent that stays settled
-# for 5 minutes without touching the file stopped without a report: NO_REPORT.
-agent=$1; report=$2; limit=$(( ${3:-120} * 2 ))
-mtime() { stat -f %m "$1" 2>/dev/null || stat -c %Y "$1" 2>/dev/null || echo 0; }
-settled() { herdr agent get "$agent" 2>/dev/null | grep -qE '"agent_status":"(idle|done)"'; }
-start=$(mtime "$report"); i=0; quiet=0
-while [ "$i" -lt "$limit" ]; do
-  if settled; then
-    if [ "$(mtime "$report")" != "$start" ]; then
-      sleep 20; settled && { echo "REPORT_READY $report"; exit 0; }
-    else
-      quiet=$((quiet + 1)); [ "$quiet" -ge 10 ] && { echo "NO_REPORT $agent"; exit 2; }
-    fi
-  else
-    quiet=0
-  fi
-  sleep 30; i=$((i + 1))
+# Usage: wait-report <agent> <reply-path> [--prompt <pointer>] [--timeout <min>] [--quiet <min>]
+# Waits until the last line of <reply-path> is exactly the end marker, then prints
+# REPORT_READY. Every request gets a fresh reply path, so a marker there always belongs to
+# this request, and rerunning the wait after any other outcome still finds a finished reply.
+# With --prompt, the one-line pointer is first sent through `herdr agent prompt`.
+# Other outcomes: NOT_SENT_BLOCKED (Herdr rejected the pointer because the agent sits on a
+# prompt; resend it once the prompt is resolved), BLOCKED (the agent sits on a permission
+# prompt after receiving the request), GONE (the agent is no longer listed), NO_REPORT (the
+# agent stayed idle/done for --quiet minutes without a reply; default 5, 0 never), TIMEOUT
+# (--timeout minutes, default 120), SEND_FAILED (Herdr refused the pointer for another reason).
+agent=$1; reply=$2; shift 2; prompt=; timeout=120; quiet=5
+while [ $# -gt 1 ]; do
+  case $1 in --prompt) prompt=$2 ;; --timeout) timeout=$2 ;; --quiet) quiet=$2 ;; esac; shift 2
+done
+ended() { [ "$(tail -n 1 "$reply" 2>/dev/null)" = '<!-- end of reply -->' ]; }
+if [ -n "$prompt" ]; then
+  out=$(herdr agent prompt "$agent" "$prompt" 2>&1)
+  case $out in
+    *agent_blocked*) echo "NOT_SENT_BLOCKED $agent"; exit 6 ;;
+    *'"error"'*) echo "SEND_FAILED $agent $(echo "$out" | grep -o '"message":"[^"]*"' | head -1)"; exit 5 ;;
+  esac
+fi
+i=0; settled=0
+while [ "$i" -lt $((timeout * 12)) ]; do
+  ended && { echo "REPORT_READY $reply"; exit 0; }
+  case $(herdr agent get "$agent" 2>/dev/null | grep -oE '"agent_status":"[a-z]+"' | cut -d'"' -f4) in
+    "") echo "GONE $agent"; exit 4 ;;
+    blocked) echo "BLOCKED $agent"; exit 3 ;;
+    idle|done) settled=$((settled + 1))
+      [ "$quiet" -gt 0 ] && [ "$settled" -ge $((quiet * 12)) ] && { echo "NO_REPORT $agent"; exit 2; } ;;
+    *) settled=0 ;;
+  esac
+  sleep 5; i=$((i + 1))
 done
 echo "TIMEOUT $agent"; exit 1

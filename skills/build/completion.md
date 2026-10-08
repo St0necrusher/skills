@@ -47,7 +47,7 @@ After the two axes, run one more fresh-context reviewer on a strong model (role 
 
 - the snapshot and the two axis reports, so it does not redo them;
 - the focus: each block in the right layer, block boundaries and public entries, composition, over-engineering the change introduced (facades, wrappers, needless narrow types, defensive checks), and leftovers (dead code, stale names, docs describing the old structure);
-- how to reach the architect: named sender in every message, longer answers appended to `answers/final-architecture.md`, few batched questions;
+- how to reach the architect: few batched questions, each batch a request in the `multi-agent-delegate` envelope (sender, pane, reply path) whose answer goes to its own file, `final-review/answers-<n>.md`, waited on with `wait-report`;
 - the order of work: first ask the architect what it considers most important to check and which decisions it regards as risky or provisional; then review the whole change; then put every finding it is unsure of to the architect before reporting;
 - the report at `final-review/architecture.md`: each finding with `file:line`, classification (confirmed defect / architect-confirmed / suggestion / not a defect after consultation), severity, recommended fix, and the architect answers that shaped the verdicts.
 
