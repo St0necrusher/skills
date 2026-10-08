@@ -6,37 +6,44 @@ Agent skills for a design → delegate → review workflow: a human designs with
 
 ```mermaid
 flowchart TD
-    U([User]) -->|/build ticket| D[Design session<br/>ground, design together,<br/>plan test scenarios]
-    D -->|user approves design| RC[Architect readiness check<br/>architect reads docs cold,<br/>design session answers gaps]
-    RC -->|implementation-brief.md| C[Coordinator<br/>execution plan: slices, owners, models]
-    C -->|user approves plan| BA
+    U([User]) -->|/build| D[Design session]
+    D -->|design approved| RC[Readiness check]
+    RC -->|brief| C[Coordinator plan]
+    C -->|plan approved| BA
+
     subgraph Phase["Whole phase"]
         AR[(Architect)]
     end
-    RC -.->|spawns if none| AR
+    RC -.->|spawns| AR
 
     subgraph Slice["Per slice"]
-        BA[Brief author<br/>writes briefs/slice.md] --> W[Worker<br/>implements, validates in foreground]
-        W <-->|questions / answer files| AR
-        W -->|reports/slice.md| RV[Reviewer<br/>diff vs brief: verdict]
-        RV -->|corrections| W
-        RV -->|accept| CM[Coordinator commits,<br/>updates progress.md]
+        BA[Brief author] --> W[Worker]
+        W <-->|questions| AR
+        W -->|report| RV[Reviewer]
+        RV -->|fixes| W
+        RV -->|accept| CM[Commit]
     end
 
     CM -->|next slice| BA
-    CM -->|all slices done| FR
+    CM -->|all done| FR
 
     subgraph Final["Review once"]
-        FR[Validate] --> AX[Standards + Spec reviewers]
-        AX --> AI[Architecture-intent reviewer]
-        AI <-->|risks, unsure findings| AR
+        FR[Validate] --> AX[Standards + Spec]
+        AX --> AI[Intent review]
+        AI <-->|risks| AR
     end
 
     AI --> HR([User review, PR])
-    HR -->|/tests| T[Same coordinator loop<br/>for test slices]
+    HR -->|/tests| T[Same loop for tests]
 ```
 
-The coordinator stays thin: code and diffs are read only by one-shot roles (brief author, worker, reviewer), and the architect keeps its context for decisions by sending code research to read-only subagents.
+- **Design session**: the user designs with one agent: requirements, modules, data flow, test scenarios.
+- **Readiness check**: the architect reads the approved docs cold; the design session fills every gap in `architecture.md`. The architect stays for the whole phase.
+- **Coordinator plan**: slices, file ownership, worker models; nothing runs until the user approves it.
+- **Per slice**: a one-shot brief author writes the slice brief; a worker implements and validates it, asking the architect directly; a one-shot reviewer checks the diff against the brief; the coordinator commits.
+- **Review once**: full validation, Standards and Spec reviewers, then an intent reviewer that checks the change against the architecture's intent together with the architect.
+
+The coordinator stays thin: code and diffs are read only by one-shot roles, and the architect keeps its context for decisions by sending code research to read-only subagents.
 
 ## Skills
 
