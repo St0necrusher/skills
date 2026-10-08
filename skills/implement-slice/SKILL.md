@@ -1,6 +1,6 @@
 ---
 name: implement-slice
-description: Implement a bounded delegated slice of an approved architecture; report evidence and escalate design contradictions to the coordinator.
+description: Implement a bounded delegated slice of an approved architecture; report evidence and escalate design contradictions to the architect or coordinator.
 ---
 
 # Implement a slice
@@ -11,7 +11,7 @@ Own the assigned slice, including requested corrections. The coordinator owns ar
 
 Read the assignment, approved architecture, applicable project instructions, and relevant source. Identify owned files, public seams, acceptance criteria, exclusions, dependencies, and existing validation commands. Inspect the worktree and preserve pre-existing and other workers' changes.
 
-Ask about missing consequential decisions, conflicting requirements, or overlapping ownership before editing affected code: as a request to the answerer the assignment names (the architect), or in the report's Questions section when it names none.
+Ask about missing consequential decisions, conflicting requirements, or overlapping ownership before editing affected code: to the architect the assignment names, through the `architect` skill's Ask branch, or in the report's Questions section when it names none.
 
 **Exit:** the assigned behavior and ownership are explicit and dependencies are available or reported blocked.
 
@@ -23,7 +23,7 @@ Add supporting machinery only for a concrete current requirement, contract, or a
 
 Before adding a defensive check or reporting a defect, trace the scenario through actual callers, input provenance, and reachable lifecycle states. Distinguish demonstrated failures from hypothetical misuse. Locate the owner of the violated invariant: if the cause is broken ownership or data flow, propose correcting that layer rather than masking the symptom in consumers. Keep checks that enforce legitimate boundary contracts distinct from compensating patches.
 
-When implementation reveals a design problem, put the evidence, affected assumption, impact, and smallest proposed remedy to the same answerer, or in the report. Pause affected work pending a decision; independent work may continue. An architectural workaround needs agreement rather than silent adoption.
+When implementation reveals a design problem, including a change that fits the owned files only through a workaround (markers in `final-review`'s Evidence bar), put the evidence, affected assumption, impact, and smallest proposed remedy to the same answerer, or in the report. Pause affected work pending a decision; independent work may continue. An architectural workaround needs agreement rather than silent adoption.
 
 Tests, fixtures, snapshots, test helpers, and test configuration remain unchanged. Report obsolete-test conflicts for the later testing phase; preserve checks rather than weakening them. Staging, commits, and pushes require separate explicit authorization.
 

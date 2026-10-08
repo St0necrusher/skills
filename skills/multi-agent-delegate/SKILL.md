@@ -21,7 +21,7 @@ For a tab, follow [tabs.md](tabs.md) from here on: it covers the lifecycle, laun
 
 The delegate starts cold: it knows only what the request says. Make it self-contained:
 
-- the **envelope**: `from: <your name> (<harness>, Herdr pane <$HERDR_PANE_ID>)`, `reply-to: <absolute reply path>`, and `skills: <skills to run>` when the delegate should follow particular skills;
+- the **envelope**: `from: <your name> (<harness>, Herdr pane <$HERDR_PANE_ID>)`, `reply-to: <absolute reply path>`, and `skills: <skills to run>`: the role's own skill where the dispatching skill names one, plus any skill the task needs that you choose (`tdd`, a repository skill);
 - the goal and a checkable done criterion;
 - the context it cannot find by looking: relevant paths, decisions already made, what the user wants;
 - boundaries: which files it may change, and that it must not commit, push, or touch files outside the task;

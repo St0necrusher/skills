@@ -1,0 +1,3 @@
+interface:
+  display_name: "Multi-Agent Delegate"
+  short_description: "Delegate work to a subagent or a Herdr tab"

@@ -38,10 +38,12 @@ flowchart TD
 ```
 
 - **Design session**: the user designs with one agent: requirements, modules, data flow, test scenarios.
-- **Readiness check**: the architect reads the approved docs cold; the design session fills every gap in `architecture.md`. The architect stays for the whole phase.
+- **Readiness check** (`architect`): the architect reads the approved docs cold; the design session fills every gap in `architecture.md`. The architect stays for the whole phase.
 - **Coordinator plan**: slices, file ownership, worker models; nothing runs until the user approves it.
 - **Per slice**: a one-shot brief author writes the slice brief; a worker implements and validates it, asking the architect directly; a one-shot reviewer checks the diff against the brief; the coordinator commits.
-- **Review once**: full validation, Standards and Spec reviewers, then an intent reviewer that checks the change against the architecture's intent together with the architect.
+- **Review once** (`final-review`): full validation, Standards and Spec reviewers, then an intent reviewer that checks the change against the architecture's intent together with the architect.
+
+Review, tests, and the architect are also reachable outside `/build`: an agent that implemented something after a free discussion picks up `final-review`, `tests`, or `architect` by itself.
 
 The coordinator stays thin: code and diffs are read only by one-shot roles, and the architect keeps its context for decisions by sending code research to read-only subagents.
 
@@ -51,11 +53,13 @@ The coordinator stays thin: code and diffs are read only by one-shot roles, and 
 |---|---|---|
 | `build` | user | Design a feature together, delegate implementation, reconcile, review once |
 | `impl` | user | Implement one ticket for human review, without tests or commits |
-| `tests` | user | Choose and write durable tests after human review |
-| `delegating-slices` | model | Coordinator workflow: roles, slices, briefs, architect questions, review gate |
+| `tests` | model | Plan and write durable tests after human review |
+| `final-review` | model | Validate and review a finished change once: Standards, Spec, intent with the architect |
+| `architect` | model | Dispatch the architect, run the readiness check, ask it, or act as it |
+| `delegating-slices` | model | Coordinator workflow: roles, slices, briefs, review gate |
 | `implement-slice` | model | Worker side of one delegated slice |
 | `testing-scenarios` | model | Pick critical, optional and excluded test scenarios |
-| `multi-agent-delegate` | model | Run delegates in Herdr tabs (pi or Claude); role map of harness, model and thinking in `models.md`; waiting scripts in `scripts/` |
+| `multi-agent-delegate` | model | Run delegates in Herdr tabs (pi or Claude); roles and their harness, model and thinking in `models.md`; waiting scripts in `scripts/` |
 
 ## Install
 

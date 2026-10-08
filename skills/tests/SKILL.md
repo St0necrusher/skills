@@ -1,7 +1,6 @@
 ---
 name: tests
-description: "Choose and write durable tests for an implementation after human review."
-disable-model-invocation: true
+description: "Plan and author tests after the user has reviewed an implementation."
 ---
 
 # Behavior Tests
@@ -10,11 +9,11 @@ Lock down approved ticket behavior with the fewest durable tests that provide me
 
 Run this after the production implementation has received human review. It may follow `/impl` in the same session.
 
-Hand steps 1–4 to a coordinator as described in the `delegating-slices` skill; the brief is `tests-brief.md`. The brief carries the user's review decisions and the sources to read; the coordinator chooses the scenarios. Its execution plan is the scenario list of step 2 plus who writes the tests and how the work is cut.
+Hand steps 1–4 to a coordinator as described in the `delegating-slices` skill; the brief is `tests-brief.md` in the task directory (create both when missing), sent with `skills: delegating-slices, tests`. The brief carries the user's review decisions, the requirements (without a ticket, the behavior the user agreed in the conversation), and the sources to read; the coordinator chooses the scenarios. Its execution plan is the scenario list of step 2 plus who writes the tests and how the work is cut. When you are that coordinator, run steps 1–4 yourself. A test-slice worker runs step 3 and the checks of step 4 on its slice, and returns its report to the coordinator.
 
 ## 1. Ground the testing phase
 
-Read the ticket, comments, linked spec, implementation diff, and the user's review decisions. Read repository instructions, `CONTEXT.md`, relevant ADRs, architecture documents, existing test conventions, and executable scripts. Reuse the current session's accepted decisions, but verify requirements against their primary sources.
+Read the ticket, comments, linked spec (without a ticket, the agreed behavior in `spec.md` or the brief), implementation diff, and the user's review decisions. Read repository instructions, `CONTEXT.md`, relevant ADRs, architecture documents, existing test conventions, and executable scripts. Reuse the current session's accepted decisions, but verify requirements against their primary sources.
 
 Identify:
 

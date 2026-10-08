@@ -1,0 +1,3 @@
+interface:
+  display_name: "Final Review"
+  short_description: "Validate and review a finished change once"

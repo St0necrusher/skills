@@ -1,6 +1,6 @@
 ---
 name: testing-scenarios
-description: "Choose which test scenarios to plan: critical now, optional, deliberately excluded. Use when planning verification during architecture design, when deciding which tests to write after implementation, or when a skill asks for a verification plan."
+description: "Choose which test scenarios to plan: critical now, optional, deliberately excluded. Use when planning verification during architecture design, or when a skill asks for a verification plan."
 ---
 
 # Choosing test scenarios
@@ -54,4 +54,4 @@ Record the preliminary recommendation with the architecture, linking existing co
 
 Reconcile the preliminary recommendation, if present, with actual seams, existing coverage, discoveries, and accepted behavior. Explain additions, removals, or changed priorities rather than replacing the plan silently.
 
-Ask the user to approve the critical set and select optional scenarios before writing tests. Completion means an explicitly approved, bounded scenario list; test authoring then follows the testing skill.
+Ask the user to approve the critical set and select optional scenarios before writing tests. Completion means an explicitly approved, bounded scenario list; test authoring then follows the `tests` skill.

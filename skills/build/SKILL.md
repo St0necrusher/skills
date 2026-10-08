@@ -21,6 +21,8 @@ Create a local task directory using the repository's artifact convention; otherw
 
 ## 2. Design together, top down
 
+When the design was already agreed earlier in the conversation, write it into `architecture.md`, discuss with the user only what the views and verification plan below still lack, and go to the exit; approvals already given explicitly stand.
+
 Product clarification establishes what to build; architectural discussion establishes how it will work. After clarifying requirements, present a concrete recommended design to the user before asking to approve or finalize the architecture. Offer alternatives only where a consequential trade-off exists, with a recommendation and reasons.
 
 ### Present the proposal
@@ -53,7 +55,7 @@ Coordinate research from the parent rather than passing a delegating workflow wh
 
 ### Minimum sufficient design
 
-Every mechanism must serve a current requirement, existing contract, or applicable architecture rule. Reuse existing mechanisms. Keep natural failures when an additional check adds no required behavior. Introduce validation, compatibility, retries, fallbacks, and abstractions only for a concrete present need; explain required security and contract protections during design. Defer hypothetical cases and incidental cleanup.
+Every mechanism must serve a current requirement, existing contract, or applicable architecture rule. Reuse existing mechanisms. Keep natural failures when an additional check adds no required behavior. Introduce validation, compatibility, retries, fallbacks, and abstractions only for a concrete present need; explain required security and contract protections during design. Defer hypothetical cases and incidental cleanup. When the change fits the existing code only through workarounds (`final-review`, Evidence bar), include the preparatory refactoring in the design, ahead of the work that depends on it: it serves the current requirement, so it is not incidental.
 
 Design invariants into ownership: identify the authoritative owner of each mutable state and lifecycle transition, and how consumers receive consistent state. Prefer contracts and data flow that prevent invalid states over compensating checks scattered across consumers. Evaluate concrete failure paths in the actual system rather than inventing hypothetical consumers or unsupported scenarios.
 
@@ -65,13 +67,11 @@ Stop detailing when an implementer can proceed without making architectural or p
 
 ### Readiness check by the architect
 
-Before handing off, make sure the phase has an architect (see the `delegating-slices` skill, Roles). When the user has not named one and has not declined one, dispatch it yourself: kind, model and thinking from the `multi-agent-delegate` role map, lifecycle `ongoing`, its brief only files (the approved architecture, `progress.md`, the ADRs, the ticket).
-
-Its first task is a **readiness check**: read the files cold and list every question an implementer would hit that they leave open. Answer each from the design discussion and write the answer into `architecture.md`, so it lives in the record rather than in either session's context. Bring the user only the questions that would change a decision or were never discussed. **Exit:** the architect reports no open questions, and `architecture.md` holds every answer.
+Before handing off, run the readiness check of the `architect` skill until its exit holds.
 
 ### Hand off to the coordinator
 
-Hand the rest of step 3 and steps 4–5 to a coordinator as described in the `delegating-slices` skill; the brief is `implementation-brief.md`. The brief carries the approved design and requirements and names the architect; the coordinator's execution plan decides who implements and how the work is cut. Implementation adds:
+Hand the rest of step 3 and steps 4–5 to a coordinator as described in the `delegating-slices` skill; the brief is `implementation-brief.md`, sent with `skills: delegating-slices`. The brief carries the approved design and requirements and names the architect; the coordinator's execution plan decides who implements and how the work is cut. Implementation adds:
 
 - When the plan spans several owner areas, fan out **contract-first**: the first slice writes every shared seam as code (capability interfaces, extended contracts, and the minimal stubs that keep existing code compiling). Later slices depend only on those accepted contracts and run in parallel in the same worktree; the common brief says that type errors in other workers' files are expected.
 - Wire composition (manifest, top-level composition) as a final slice after the others are reconciled.
@@ -84,7 +84,7 @@ Hand the rest of step 3 and steps 4–5 to a coordinator as described in the `de
 
 Check the result against requirements and the approved architecture through the review gate of the `delegating-slices` skill. Account for every criterion and changed public seam.
 
-For a discrepancy, ask the implementer why it exists and examine the evidence before deciding. Trace any claimed failure through real callers and reachable states; locate the responsible invariant owner before choosing a remedy. Correct broken ownership or data flow at its source rather than masking symptoms with consumer-side checks. Apply the reachability and root-cause evidence bar in [completion.md](completion.md) during reconciliation as well as final review:
+For a discrepancy, ask the implementer why it exists and examine the evidence before deciding. Trace any claimed failure through real callers and reachable states; locate the responsible invariant owner before choosing a remedy. Correct broken ownership or data flow at its source rather than masking symptoms with consumer-side checks. Apply the evidence bar of the `final-review` skill (its Evidence bar section) to each discrepancy:
 
 - **Implementation error:** return a concrete correction to the worker, then inspect the result.
 - **Minor justified deviation:** accept and update the architecture when behavior, public contracts, and module boundaries remain unchanged.
@@ -102,4 +102,16 @@ This reconciliation loop can repeat. It is distinct from the single final adviso
 
 ## 5. Validate, review once, and hand off
 
-Follow [completion.md](completion.md) for existing checks, one independent two-axis advisory review, triage, and the final report.
+Run the `final-review` skill over the reconciled change. Then report:
+
+- implementation summary and changed public behavior/contracts;
+- acceptance table and validation commands/outcomes;
+- triaged review findings and recommended decisions;
+- remaining risks, deferred work, and existing-test conflicts;
+- links to architecture, research, and continuation records;
+- a short manual-review checklist;
+- an updated verification plan using the `testing-scenarios` skill: reconcile the architecture-stage recommendation against actual implementation and coverage, explaining any changes. Keep test-authoring approval for the later testing phase.
+
+Explain the core process so the user can choose scenarios and necessary protections in that later phase.
+
+Keep staging, commits, pushes, ticket closure, and test authoring for later user-authorized phases. Offer the `tests` workflow after human review. Finish with exactly one state: **implementation ready for human review** or **blocked/incomplete**. Known implementation defects or missing required verification prevent a readiness claim.
